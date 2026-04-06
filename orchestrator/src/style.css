@@ -1,0 +1,66 @@
+:root {
+  color: #0f172a;
+  background: radial-gradient(circle at top, #f0f9ff, #ecfeff 40%, #f8fafc 100%);
+  font-family: "Sora", "Segoe UI", sans-serif;
+}
+
+body {
+  margin: 0;
+}
+
+app-root {
+  display: block;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 2rem 1rem 3rem;
+}
+
+header h1 {
+  margin: 0;
+  font-size: clamp(1.6rem, 2vw + 1rem, 2.6rem);
+}
+
+header p {
+  margin: 0.6rem 0 0;
+  color: #334155;
+}
+
+.grid {
+  margin-top: 1.25rem;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.remote-shell {
+  border: 1px solid #cbd5e1;
+  border-radius: 16px;
+  background: #ffffffcc;
+  backdrop-filter: blur(8px);
+  padding: 1rem;
+}
+
+.remote-shell h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  color: #0f172a;
+}
+
+.remote-mount {
+  min-height: 120px;
+}
+
+.error {
+  margin: 0;
+  color: #b91c1c;
+}
+
+.error-details {
+  margin: 0.5rem 0 0;
+  padding: 0.6rem;
+  border-radius: 8px;
+  background: #fee2e2;
+  color: #7f1d1d;
+  font-size: 0.8rem;
+  white-space: pre-wrap;
+}

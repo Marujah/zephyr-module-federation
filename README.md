@@ -8,18 +8,21 @@ features: []
 complexity: beginner
 ---
 
-# React + TypeScript + Vite
+# Vite Module Federation Workspace
 
-A React application built with Vite bundler and TypeScript, providing fast development experience with Hot Module Replacement (HMR) and modern tooling.
+This workspace now contains three Vite apps:
+
+- `react-remote`: React remote exposed through Module Federation
+- `vue-remote`: Vue remote exposed through Module Federation
+- `orchestrator`: Host app that loads both remotes at runtime
 
 ## Technology Stack
 
-- **Framework**: React 18
-- **Bundler**: Vite 5
-- **Language**: TypeScript
-- **Development**: HMR with Fast Refresh
-- **Linting**: ESLint with TypeScript support
-- **Deployment**: Zephyr Cloud (via vite-plugin-zephyr)
+- **Bundler**: Vite
+- **Federation**: `@originjs/vite-plugin-federation`
+- **React Remote**: React + TypeScript + `vite-plugin-zephyr`
+- **Vue Remote**: Vue 3 + TypeScript
+- **Host**: Vanilla TypeScript orchestrator
 
 ## Prerequisites
 
@@ -29,30 +32,85 @@ A React application built with Vite bundler and TypeScript, providing fast devel
 ## Getting Started
 
 1. **Install dependencies**
+
    ```bash
    pnpm install
    ```
 
-2. **Start development server**
+2. **Start all apps (React + Vue + Orchestrator)**
+
    ```bash
    pnpm dev
    ```
-   
-   The application will be available at `http://localhost:5173`
 
-3. **Build for production**
+   Apps run on `http://localhost:5173` (orchestrator host), `http://localhost:5174` (React remote), and `http://localhost:5175` (Vue remote).
+   Dev servers use fixed ports (`strictPort`) so Module Federation remotes stay aligned.
+   For remotes, dev mode uses `build --watch` + `vite preview` to ensure `remoteEntry.js` is available for the host.
+
+   If startup fails with "Port ... is already in use", stop old dev servers and run `pnpm dev` again.
+
+3. **Build each app individually**
+
    ```bash
-   pnpm build
+   pnpm --filter react-remote build
+   pnpm --filter vue-remote build
+   pnpm --filter orchestrator build
    ```
 
-4. **Preview production build**
+4. **Build all workspace packages at once**
+
+   ```bash
+   pnpm build:all
+   ```
+
+5. **Preview production builds**
+
    ```bash
    pnpm preview
+   pnpm --filter vue-remote preview
+   pnpm --filter orchestrator preview
    ```
+
+## Module Federation Contracts
+
+The remotes expose a single `mount(container)` API:
+
+- React remote exposes `react_remote/mount`
+- Vue remote exposes `vue_remote/mount`
+
+The orchestrator imports both and mounts them into its own layout.
+
+## Orchestrator Remote URLs (Local vs Production)
+
+The orchestrator reads remote entries from environment variables:
+
+- `VITE_REACT_REMOTE_ENTRY`
+- `VITE_VUE_REMOTE_ENTRY`
+
+Local defaults are in [orchestrator/.env.development](orchestrator/.env.development).
+
+For deployment, create `orchestrator/.env.production` based on [orchestrator/.env.production.example](orchestrator/.env.production.example) and set your Zephyr remote URLs.
+
+Example production values:
+
+```env
+VITE_REACT_REMOTE_ENTRY=https://your-react-remote-domain/assets/remoteEntry.js
+VITE_VUE_REMOTE_ENTRY=https://your-vue-remote-domain/assets/remoteEntry.js
+```
+
+Build host with production env:
+
+```bash
+pnpm build:host
+```
 
 ## Zephyr Cloud Integration
 
-This example is configured to deploy to Zephyr Cloud automatically when built. The `vite-plugin-zephyr` handles the deployment process seamlessly.
+The React remote keeps `vite-plugin-zephyr` available but opt-in.
+
+- Local build/dev (default): no Zephyr upload behavior
+- Zephyr build: `pnpm --dir react-remote build:zephyr`
+- Zephyr build (Vue): `pnpm --dir vue-remote build:zephyr`
 
 ## ESLint Configuration
 
@@ -62,18 +120,10 @@ The project includes ESLint configuration with TypeScript support. For productio
 - Use `plugin:@typescript-eslint/recommended-type-checked` for stricter rules
 - Add `plugin:react/recommended` for React-specific linting
 
-## About Zephyr Cloud
-
-Zephyr Cloud is a micro-frontend deployment platform that provides:
-- **Auto-deployment**: Seamless deployment from your build process
-- **Live preview links**: Instant preview URLs for your applications
-- **SemVer versioning**: Semantic versioning for your frontend modules
-- **Rollback capabilities**: Easy rollback to previous versions
-- **Enterprise-scale orchestration**: Built for composable frontend systems
-
 ## Learn More
 
 - [Vite Documentation](https://vitejs.dev/)
-- [React Documentation](https://reactjs.org/)
+- [React Documentation](https://react.dev/)
+- [Vue Documentation](https://vuejs.org/)
 - [TypeScript Documentation](https://www.typescriptlang.org/)
-- [Zephyr Cloud Documentation](https://docs.zephyr-cloud.io)
+- [Vite Federation Plugin](https://github.com/originjs/vite-plugin-federation)
