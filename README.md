@@ -22,7 +22,7 @@ This workspace now contains three Vite apps:
 - **Federation**: `@originjs/vite-plugin-federation`
 - **React Remote**: React + TypeScript + `vite-plugin-zephyr`
 - **Vue Remote**: Vue 3 + TypeScript
-- **Host**: Vanilla TypeScript orchestrator
+- **Host**: Angular standalone orchestrator (TypeScript)
 
 ## Prerequisites
 
@@ -80,6 +80,12 @@ The remotes expose a single `mount(container)` API:
 
 The orchestrator imports both and mounts them into its own layout.
 
+## Build Output Optimization
+
+The orchestrator production build uses explicit Rollup `manualChunks` splitting in `orchestrator/vite.config.ts`.
+
+This keeps Angular/runtime dependencies split into separate cacheable chunks (for example `ng-core`, `ng-compiler`, `rxjs`, `zonejs`) and avoids one oversized host bundle.
+
 ## Orchestrator Remote URLs (Local vs Production)
 
 The orchestrator reads remote entries from environment variables:
@@ -111,6 +117,35 @@ The React remote keeps `vite-plugin-zephyr` available but opt-in.
 - Local build/dev (default): no Zephyr upload behavior
 - Zephyr build: `pnpm --dir react-remote build:zephyr`
 - Zephyr build (Vue): `pnpm --dir vue-remote build:zephyr`
+
+## Troubleshooting
+
+### Dev stack exits after a React file change
+
+Symptom example:
+
+- `pnpm dev:react:build exited with code 1`
+- followed by `--> Sending SIGTERM to other processes..`
+
+Cause:
+
+- `vite-plugin-inspect` can fail during incremental watch rebuilds in the React remote federation watch flow.
+
+Current fix in this workspace:
+
+- In `react-remote/vite.config.ts`, inspect is disabled when `MF_DEV=1`.
+
+If this regression appears again:
+
+1. Confirm `pnpm dev` is running with the existing scripts from root `package.json`.
+2. Confirm React watch mode uses `MF_DEV=1 vite build --watch`.
+3. Keep inspect disabled for MF watch mode (or remove it entirely for watch builds).
+4. Restart from a clean state:
+
+```bash
+for p in 5173 5174 5175; do lsof -ti tcp:$p | xargs -r kill -9; done
+pnpm dev
+```
 
 ## ESLint Configuration
 
